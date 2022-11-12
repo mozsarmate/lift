@@ -3,4 +3,4 @@ project(lift C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(lift main.c adv_alg.c)
+add_executable(lift main.c adv_alg.c display.c main.h)

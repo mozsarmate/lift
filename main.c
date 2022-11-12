@@ -1,8 +1,17 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <windows.h>
-#include <conio.h>
-#include <math.h>
+/***
+ *       __ _  __ _                    _
+ *      / /(_)/ _| |_    ___  ___  ___| |__
+ *     / / | | |_| __|  / _ \/ __|/ __| '_ \
+ *    / /__| |  _| |_  |  __/\__ \ (__| | | |
+ *    \____/_|_|  \__|  \___||___/\___|_| |_|
+ *
+ * @author Mozsár Máté
+ * @date 2022.10.09.
+ *
+ */
+
+
+#include "main.h"
 
 //TODO kicserelni linked listra
 //TODO halalfejes hibak?
@@ -15,69 +24,71 @@
  * 6-9 waiting at  to  level
 */
 
-typedef enum states{
-    tobase, getin1, getin2, getin3, getin4, totarg, getou1, getou2, getou3, getou4
-} states;
-typedef struct req{
-    int id, time, from, to;
-    int shortlist, getintime, getouttime, servedby;
-} req;
-typedef struct sl{
-    int meret;
-    int t[20];                 //showing req id
-    int shortlist;          //TODO maybe add serving time as a detail
-    int up;
-} sl;
-typedef struct lift{
-    float lvl;
-    int capacity;
-    int shortlists;
-    states state;
-    int reqs_serving[22];   //TODO make it not int but req to make it more understandable
-    sl sl_serving[22];
-    int heading;
-} lift;
 
-int maxlvl = 18;
-int minlvl = 0;
-lift lifts[4] = {0};
-req reqs[101] = {0};
-
-int times_eplapsed[101] = {-1}; //TODO not needed to be global
-int waitingsum = 0;                 // not needed to be global
-int uselesssum = 0;                 // not needed to be global
-int usefullsum = 0;                 // not needed to be global
-double deviation = 0;               // not needed to be global
-float avg = 0;                      // not needed to be global
+int s_times_eplapsed[101] = {-1}; //TODO not needed to be global
+int s_waitingsum = 0;                 // not needed to be global
+int s_uselesssum = 0;                 // not needed to be global
+int s_usefullsum = 0;                 // not needed to be global
+double s_deviation = 0;               // not needed to be global
+float s_avg = 0;                      // not needed to be global
 int curtime = 0;
 
-int menu(int sela){
-    //sel %= 4;
-    system("cls");
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    printf("   __ _  __ _                    _          \n  / /(_)/ _| |_    ___  ___  ___| |__       \n / / | | |_| __|  / _ \\/ __|/ __| '_ \\    \n/ /__| |  _| |_  |  __/\\__ \\ (__| | | |   \n\\____/_|_|  \\__|  \\___||___/\\___|_| |_| \n\n");
 
-    SetConsoleTextAttribute(hConsole,8);
-    printf("  >diszjunktiv algoritmusok\n");
-    SetConsoleTextAttribute(hConsole,15);
-    if(sela==0) SetConsoleTextAttribute(hConsole,FOREGROUND_RED);
-    printf("     [1] - uj   primitiv   szimulacio inditasa\n");
-    SetConsoleTextAttribute(hConsole,15);
-    if(sela==1) SetConsoleTextAttribute(hConsole,FOREGROUND_RED);
-    printf("     [2] - uj     moho     szimulacio inditasa\n");
-    SetConsoleTextAttribute(hConsole,15);
-    if(sela==2) SetConsoleTextAttribute(hConsole,FOREGROUND_RED);
-    printf("     [3] - uj tervezo(ETA) szimulacio inditasa\n");
-    SetConsoleTextAttribute(hConsole,8);
-    printf("  >atfedo algoritmusok\n");
-    SetConsoleTextAttribute(hConsole,15);
-    if(sela==3) SetConsoleTextAttribute(hConsole,FOREGROUND_RED);
-    printf("     [4] - uj intelligens  szimulacio inditasa\n");
+int mainmenu(int sela, int disable){
+    char inp = 0;
+    do {
+        system("cls");
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        printf("   __ _  __ _                    _          \n  / /(_)/ _| |_    ___  ___  ___| |__       \n / / | | |_| __|  / _ \\/ __|/ __| '_ \\    \n/ /__| |  _| |_  |  __/\\__ \\ (__| | | |   \n\\____/_|_|  \\__|  \\___||___/\\___|_| |_| \n\n");
 
-    char inp = getchar();
+        SetConsoleTextAttribute(hConsole, 9);
+        printf("  Fomenu\n");
+        SetConsoleTextAttribute(hConsole, 8);
+        printf("     >muveletek\n");
+        SetConsoleTextAttribute(hConsole, 15);
+        if (sela == 0) SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
+        printf("        [1] - kerelem lista szerkesztese\n");
+        SetConsoleTextAttribute(hConsole, 15);
+        if (sela == 1) SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
+        printf("        [2] - szimulacio futtatasa\n");
+        inp = getchar();
+        inp -= 48;
+    }while(!(inp > 0 && inp < 3));
     return inp;
 }
 
+int menu(int sela, int disable){
+    //sel %= 4;
+    char inp = 0;
+    do{
+        system("cls");
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        printf("   __ _  __ _                    _          \n  / /(_)/ _| |_    ___  ___  ___| |__       \n / / | | |_| __|  / _ \\/ __|/ __| '_ \\    \n/ /__| |  _| |_  |  __/\\__ \\ (__| | | |   \n\\____/_|_|  \\__|  \\___||___/\\___|_| |_| \n\n");
+        SetConsoleTextAttribute(hConsole,9);
+        printf("<<szimulaciok\n");
+        SetConsoleTextAttribute(hConsole,8);
+        printf("     >diszjunktiv algoritmusok\n");
+        SetConsoleTextAttribute(hConsole,15);
+        if(sela==0) SetConsoleTextAttribute(hConsole,FOREGROUND_RED);
+        printf("        [1] - uj   primitiv   szimulacio inditasa\n");
+        SetConsoleTextAttribute(hConsole,15);
+        if(sela==1) SetConsoleTextAttribute(hConsole,FOREGROUND_RED);
+        printf("        [2] - uj     moho     szimulacio inditasa\n");
+        SetConsoleTextAttribute(hConsole,15);
+        if(sela==2) SetConsoleTextAttribute(hConsole,FOREGROUND_RED);
+        printf("        [3] - uj tervezo(ETA) szimulacio inditasa\n");
+        SetConsoleTextAttribute(hConsole,8);
+        printf("     >atfedo algoritmusok\n");
+        SetConsoleTextAttribute(hConsole,15);
+        if(sela==3) SetConsoleTextAttribute(hConsole,FOREGROUND_RED);
+        printf("        [4] - uj intelligens  szimulacio inditasa\n");
+
+        inp = getchar();
+        inp -= 48;
+    }while(!(inp > 0 && inp < 5));
+    return inp;
+}
+/*
 void disp(){
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     for (int i = maxlvl; i >= minlvl; --i) {
@@ -135,7 +146,7 @@ void disp_lift_info_adv(){
     }
     printf("-----------------------------------------------\n");
 }
-
+*/
 int getmin(int *t, int m){
     int mini = reqs[t[0]].from;
     for (int i = 1; i < m; ++i) {
@@ -151,14 +162,28 @@ int getmax(int *t, int m){
     return maxi;
 }
 int shouldstop(int *t, int m, int k){
-    for (int i = 0; i < m; ++i) {
-        if(reqs[t[i]].to   == k && !(reqs[t[i]].getouttime > -1))    return  1;        //priorize passengers who are getting off than on
-        if(reqs[t[i]].from == k && !(reqs[t[i]].getintime  > -1))  return -1;
-        return 0;                                   //TODO maybe could be replaced with a sorted t array for each sl
+    if(m > 1 && k == 10){
+        printf("NAGO");
     }
+    for (int i = 0; i < m; ++i) {
+        if(reqs[t[i]].to   == k && reqs[t[i]].getouttime <= -1)    return  1;        //priorize passengers who are getting off than on
+        if(reqs[t[i]].from == k && reqs[t[i]].getintime <= -1)    return -1;
+    }
+    return 0;                                   //TODO maybe could be replaced with a sorted t array for each sl
+}
+int *startededindexes(int *t, int m, int k){
+    int *ans= (int *) malloc(sizeof(int)*20);
+    int j = 0;
+    for (int i = 0; i < m; ++i) {
+        if(reqs[t[i]].from == k){
+            ans[++j] = t[i];
+        }
+    }
+    ans[0] = j;
+    return ans;
 }
 int *finishedindexes(int *t, int m, int k){
-    int ans[20];
+    int *ans= (int *) malloc(sizeof(int)*20);
     int j = 0;
     for (int i = 0; i < m; ++i) {
         if(reqs[t[i]].to == k){
@@ -218,7 +243,7 @@ int find_fastest(int lvl){
 }
 void find_complex(int flvl,int tlvl, int *ans){           //
     int minindex = 0;
-    int minshortlist = 0;
+    int minshortlist = lifts[flvl%4].shortlists;         //worst case scenario: return a new, created shortlist for a
     int mini = INT_MAX;
     int up = flvl < tlvl ? 1 : 0;
     for (int i = 0; i < 4; i++) {                // check each lift
@@ -227,34 +252,45 @@ void find_complex(int flvl,int tlvl, int *ans){           //
             return;
         }   // if no task >> do this
         for (int j = 0; j < lifts[i].shortlists; ++j) {
-            if(lifts[i].sl_serving[j].up == up && lifts[i].sl_serving[j].meret < 15){   //last val could be 20 as well TODO
+            if(lifts[i].sl_serving[j].up == up && lifts[i].sl_serving[j].meret < 10) {   //last val could be 20 as well TODO
                 int curcount = 0;
                 int curmin = getmin(lifts[i].sl_serving[j].t,lifts[i].sl_serving[j].meret);
                 int curmax = getmax(lifts[i].sl_serving[j].t,lifts[i].sl_serving[j].meret);
-                if(curmin > flvl){
-                    curcount += 2*abs(curmin-flvl);
-                } else if(curmax < flvl){
-                    curcount += 2*abs(curmax-flvl);
-                }
-                if(curmin > tlvl){
-                    curcount += 2*abs(curmin-tlvl);
-                } else if(curmax < tlvl){
-                    curcount += 2*abs(curmax-tlvl);
-                }
-                int vane1 = 0, vane2 = 0;               //if somebody else also gets off there, dont charge time
-                for (int k = 0; k < lifts[i].sl_serving[j].meret; ++k) {
-                    if(reqs[lifts[i].sl_serving[j].t[k]].from == flvl) vane1++;
-                    if(reqs[lifts[i].sl_serving[j].t[k]].to == tlvl) vane2++;
-                }
-                if(vane1 == 0) curcount += 4;
-                if(vane2 == 0) curcount += 4;
+                if(!(j == 0 && ((up && flvl < lifts[i].lvl) || (!up && flvl > lifts[i].lvl)))){         //only if not passed
+                    if(curmin > flvl){
+                        curcount += 2*abs(curmin-flvl);
+                    } else if(curmax < flvl){
+                        curcount += 2*abs(curmax-flvl);
+                    }
+                    if(curmin > tlvl){
+                        curcount += 2*abs(curmin-tlvl);
+                    } else if(curmax < tlvl){
+                        curcount += 2*abs(curmax-tlvl);
+                    }
+                    int vane1 = 0, vane2 = 0;               //if somebody else also gets off there, dont charge time
+                    for (int k = 0; k < lifts[i].sl_serving[j].meret; ++k) {
+                        if(reqs[lifts[i].sl_serving[j].t[k]].from == flvl) vane1++;
+                        if(reqs[lifts[i].sl_serving[j].t[k]].to == tlvl) vane2++;
+                    }
+                    if(vane1 == 0) curcount += 4;
+                    if(vane2 == 0) curcount += 4;
 
-                curcount += j*15;           //TODO this with exact travel time
-                if(curcount < mini){
-                    minindex = i;
-                    minshortlist = j;
+                    curcount += j*20;           //TODO this with exact travel time
+                    if(curcount < mini){
+                        mini = curcount;
+                        minindex = i;
+                        minshortlist = j;
+                    }
                 }
+
             }
+        }
+        int curcounta = lifts[i].shortlists * 30;
+        if(curcounta < mini){
+            mini = curcounta;
+            minindex = i;
+            minshortlist = lifts[i].shortlists;
+            printf("allocated:NEW:NEW:NEW: (%2d >> %2d)    - lift %d    shortlist %d",flvl,tlvl,minindex,minshortlist);
         }
     }
     ans[0] = minindex;
@@ -347,58 +383,85 @@ int *move_lift_adv(int cur){
         else if(heading_to_start > lifts[cur].lvl) lifts[cur].lvl += 0.5f;
         else lifts[cur].lvl -= 0.5f;
     }
-    else if(lifts[cur].state > 0 && 5 >lifts[cur].state){ lifts[cur].state++; lifts[cur].heading = 0;}
+    else if(lifts[cur].state > 0 && 5 >lifts[cur].state){
+        lifts[cur].state++; //lifts[cur].heading = 0;
+        if(lifts[cur].state == 4){
+            int *tf = startededindexes(lifts[cur].sl_serving[0].t,lifts[cur].sl_serving[0].meret,lifts[cur].lvl);
+            int started_now = tf[0];
+            for (int i = 0; i < started_now; ++i) {
+                reqs[tf[i+1]].getintime = curtime;
+            }
+            free(tf);
+        }
+    }
+
     else if(lifts[cur].state == 5){
-        int curshouldstop = shouldstop(t,m,lifts[cur].lvl);
-        if(curshouldstop == 1){
+        int curshouldstop = 0;
+        if((int) (lifts[cur].lvl*10) % 10 == 0) {                   //if lift is on an actual floor should stop?
+            curshouldstop = shouldstop(t, m, lifts[cur].lvl);
+        }
+
+        if (curshouldstop == 1) {
             lifts[cur].state = 6;
-        } else if(curshouldstop == -1){
-            lifts[cur].state = 0;//todo not =1 ?
+        } else if (curshouldstop == -1) {
+            lifts[cur].state = 1;//todo not =1 ?  ??what nem értem a saját kommentem
         } else {
             if (heading_up == 1) lifts[cur].lvl += 0.5f;
             else lifts[cur].lvl -= 0.5f;
 
         }
-    }
-    else if(lifts[cur].state > 5 && 10 >lifts[cur].state){ lifts[cur].state++; lifts[cur].heading = 0;}
 
-    //if(lifts[cur].state == 4) reqs[lifts[cur].reqs_serving[0]].getintime = curtime; //TODO make for adv
-    if(lifts[cur].state == 10){ //TELJESÍTVE
+    }
+    else if(lifts[cur].state > 5 && 10 > lifts[cur].state){
+        lifts[cur].state++; //lifts[cur].heading = 0;
+    }
+
+    else if(lifts[cur].state == 10){ //1 TELJESÍTVE
+        //asdf
         int *tf = finishedindexes(t,m,lifts[cur].lvl);  //returns size + array of ids of finished reqs
-        int finished_now = t[0];
+        int finished_now = tf[0];
         lifts[cur].sl_serving[0].meret -= finished_now;
-        int returned[20];
+        int *returned = (int *) malloc (sizeof(int)*20);
         for (int i = 0; i < finished_now; ++i) {
-            reqs[i].getouttime = curtime;
+            reqs[tf[i+1]].getouttime = curtime;
+
             for (int j = 0; j < m; ++j) {
-                if(tf[i] == lifts[cur].sl_serving[0].t[j]){
+                if(tf[i+1] == lifts[cur].sl_serving[0].t[j]){
                     for (int k = j; k < m-1; ++k) {
                         lifts[cur].sl_serving[0].t[k] = lifts[cur].sl_serving[0].t[k+1];
                     }
+                    //lifts[cur].sl_serving[0].meret--;
                 }
             }
-            returned[i+1] = t[i+1];
+            returned[i+1] = tf[i+1];
         }
         returned[0] = finished_now;
-        lifts[cur].state = 5;
-        //lifts[cur].capacity--;
-        return returned+1;
+        if(lifts[cur].sl_serving[0].meret == 0){                    //if this shortlist is finished, move all one step closer
+            for (int i = 0; i < lifts[cur].shortlists-1; ++i) {
+                lifts[cur].sl_serving[i] = lifts[cur].sl_serving[i+1];
+            }
+            lifts[cur].shortlists--;
+            lifts[cur].state = 0;
+        } else {                                                    //if this is not finished, go and find the next station
+            lifts[cur].state = 5;
+        }
+        free(tf);
+        return returned;
     }
+
+    if(lifts[cur].lvl < 0){
+        printf("ER");
+    }
+
+
 
     return 0;
 }       //returns array (until -1) of served reqs
-/***
- *       __ _  __ _                    _
- *      / /(_)/ _| |_    ___  ___  ___| |__
- *     / / | | |_| __|  / _ \/ __|/ __| '_ \
- *    / /__| |  _| |_  |  __/\__ \ (__| | | |
- *    \____/_|_|  \__|  \___||___/\___|_| |_|
- *
- */
+
 int main() {
 
-
-
+    minlvl = 0;
+    maxlvl = 18;
     FILE * fp;
     fp = fopen("input.txt","r");
 
@@ -406,24 +469,27 @@ int main() {
         printf("Nem lehetett megnyitni a fajlt :( \n");
         return 0;
     }
-    int curid =0;
+    int curid = 0;
     int input_size = 0;
     fscanf(fp,"%d",&input_size);
     while(!feof(fp) && curid < input_size){
-        fscanf(fp,"%d %d %d %d",&curid, &reqs[curid].time, &reqs[curid].from, &reqs[curid].to);
+        fscanf(fp,"%d",&curid);
+        fscanf(fp,"%d %d %d", &reqs[curid].time, &reqs[curid].from, &reqs[curid].to);
         reqs[curid].id = curid;
+        reqs[curid].getintime = -1;
+        reqs[curid].getouttime = -1;
     }
     for (int i = 0; i < curid; ++i) {
         disp_req_data(reqs[i]);
     }
 
+    int selb = mainmenu(-1,-1);
+    int sela =     menu(-1,-1);
 
-    int sela = menu(-1);
-    sela -= 48;
 
     system("cls"); //jelenlegi idő
-    int last_req_processed = -1;
-    int last_req_served = -1;
+    int last_req_processed = 0;
+    int last_req_served = 0;
 
     curid--;
     for (int i = 0; i < 4; ++i) { lifts[i].shortlists = 0; }
@@ -436,6 +502,7 @@ int main() {
             disp_lift_info();
         else
             disp_lift_info_adv();
+
         printf("\n > ido:                        00:%02d:%02d ", (curtime/60),(curtime%60));
         printf("\n\n > kerelmek:                   %d felveve,  %d teljesitve\n   ",last_req_processed+1,last_req_served+1);
         for (int i = 0; i < input_size; ++i) {
@@ -445,9 +512,10 @@ int main() {
             else printf("%c",176);
         }
         printf(" %d\n\n", input_size);
-        if(last_req_served > 0) printf(" > atlagos kiszolgalasi ido:   %d mp\n",(waitingsum/last_req_served+1));
-        if(uselesssum > 0)      printf(" > hatasfok:                   %d / %d (%.3f) \n",usefullsum,uselesssum,((float)usefullsum/(float)uselesssum));
-        if(last_req_served > 0) printf(" > szoras:                     %.2lf \n",deviation);
+        if(last_req_served > 0) printf(" > atlagos kiszolgalasi ido:   %d mp\n",(s_waitingsum/last_req_served+1));
+        if(s_uselesssum > 0)      printf(" > hatasfok:                   %d / %d (%.3f) \n",s_usefullsum,s_uselesssum,((float)s_usefullsum/(float)s_uselesssum));
+        if(last_req_served > 0) printf(" > szoras:                     %.2lf \n",s_deviation);
+
         while(reqs[last_req_processed+1].time <= curtime && last_req_processed < curid){
 
         //ide kell a logika
@@ -485,8 +553,9 @@ int main() {
                     newsl.meret = 1;
                     newsl.up = reqs[last_req_processed+1].from > reqs[last_req_processed+1].to ? 0 : 1;
                     lifts[ans[0]].sl_serving[ans[1]] = newsl;
-                    lifts[ans[0]].shortlists = 1;
+                    lifts[ans[0]].shortlists++;
                     printf("set to 1");
+                    //if(lifts[ans[0]].shortlists)
                 }
             }
             disp_new_req(reqs[last_req_processed+1], ans[0]);
@@ -502,47 +571,46 @@ int main() {
                 if(a > 0){                                                               //each time a request is served
                     last_req_served++;
                     int time_eplapsed = curtime - reqs[reqs[last_req_served].id-1].time; //TODO make for adv
-                    waitingsum += time_eplapsed;
-                    avg = (float)waitingsum / (float)last_req_served +1;
-                    times_eplapsed[last_req_served+1] = time_eplapsed;
+                    s_waitingsum += time_eplapsed;
+                    s_avg = (float)s_waitingsum / (float)last_req_served + 1;
+                    s_times_eplapsed[last_req_served + 1] = time_eplapsed;
                     double curdeviation = 0;
                     for (int j = 0; j < last_req_served+2; ++j) {
-                        curdeviation += pow((double)(times_eplapsed[j]-avg),2);
+                        curdeviation += pow((double)(s_times_eplapsed[j] - s_avg), 2);
                     }
                     curdeviation /= last_req_served;
-                    deviation = sqrt(curdeviation);
+                    s_deviation = sqrt(curdeviation);
                     completed_now++;
                 }
-                if(lifts[i].state == 0) uselesssum++;
-                else if(lifts[i].state == 5) usefullsum++;
+                if(lifts[i].state == 0) s_uselesssum++;
+                else if(lifts[i].state == 5) s_usefullsum++;
             }
         }
         else{
-            int completed_now = 0;
             for (int i = 0; i < 4; ++i) {
-                int a = move_lift_adv(i);
-                if(a > 0){                                                               //each time a request is served
-                    last_req_served++;
-                    int time_eplapsed = curtime - reqs[reqs[last_req_served].id-1].time; //TODO make for adv
-                    waitingsum += time_eplapsed;
-                    avg = (float)waitingsum / (float)last_req_served +1;
-                    times_eplapsed[last_req_served+1] = time_eplapsed;
-                    double curdeviation = 0;
-                    for (int j = 0; j < last_req_served+2; ++j) {
-                        curdeviation += pow((double)(times_eplapsed[j]-avg),2);
+                int *a = move_lift_adv(i);
+                if(a != NULL){
+                    for (int j = 0; j < a[0]; ++j) {//each time a request is served
+                        last_req_served++; // not really valid for us today, anyways
+                        int time_eplapsed = curtime - reqs[a[j+1]].getintime;
+                        s_waitingsum += time_eplapsed;
+                        s_avg = (float)s_waitingsum / (float)last_req_served + 1;
+                        s_times_eplapsed[last_req_served + 1] = time_eplapsed;
+                        double curdeviation = 0;
+                        for (int j = 0; j < last_req_served+2; ++j) {
+                            curdeviation += pow((double)(s_times_eplapsed[j] - s_avg), 2);
+                        }
+                        curdeviation /= last_req_served;
+                        s_deviation = sqrt(curdeviation);
                     }
-                    curdeviation /= last_req_served;
-                    deviation = sqrt(curdeviation);
-                    completed_now++;
                 }
-                if(lifts[i].state == 0) uselesssum++;
-                else if(lifts[i].state == 5) usefullsum++;
+                free(a);
+                if(lifts[i].state == 0) s_uselesssum++;
+                else if(lifts[i].state == 5) s_usefullsum++;
             }
         }
-       // last_req_served+=completed_now;
-
-
-        Sleep(5);
+        //getchar();
+        Sleep(1);
         curtime++;
 
 
@@ -551,6 +619,9 @@ int main() {
 
     }
     fclose(fp);
+    getchar();
+    getchar();
+    getchar();
     getchar();
     return 0;
 }
