@@ -32,13 +32,19 @@ typedef struct lift{
 
 int maxlvl;
 int minlvl;
-lift lifts[4];
-req reqs[101];
+int lvldb;
+int liftdb;
+lift *lifts;
+req *reqs;
 
 void disp();
 void disp_req_data(req bem);
 void disp_new_req(req bem, int _lift_ordered);
 void disp_lift_info();
 void disp_lift_info_adv();
+int menu(int sela, int disable);
+int mainmenu(int sela, int disable);
+void editmenu(int *cel, int mode);
+int menuend();
 
 #endif //LIFT_MAIN_H

@@ -13,10 +13,10 @@
 
 #include "main.h"
 
-//TODO kicserelni linked listra
+//TODO kicserelni linked listre
 //TODO halalfejes hibak?
-//TODO tobb algo -- make for adv
 //TODO kesobb legyen vege, az utsokat is vegyuk le a canvasrol
+//TODO valamiert nem jo a szinezese az editmenunek (errMess)
 /*
  *  0  heading to from level
  * 1-4 waiting at from level
@@ -25,7 +25,7 @@
 */
 
 
-int s_times_eplapsed[101] = {-1}; //TODO not needed to be global
+int *s_times_eplapsed = {-1}; //TODO not needed to be global
 int s_waitingsum = 0;                 // not needed to be global
 int s_uselesssum = 0;                 // not needed to be global
 int s_usefullsum = 0;                 // not needed to be global
@@ -33,120 +33,6 @@ double s_deviation = 0;               // not needed to be global
 float s_avg = 0;                      // not needed to be global
 int curtime = 0;
 
-
-int mainmenu(int sela, int disable){
-    char inp = 0;
-    do {
-        system("cls");
-        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-        printf("   __ _  __ _                    _          \n  / /(_)/ _| |_    ___  ___  ___| |__       \n / / | | |_| __|  / _ \\/ __|/ __| '_ \\    \n/ /__| |  _| |_  |  __/\\__ \\ (__| | | |   \n\\____/_|_|  \\__|  \\___||___/\\___|_| |_| \n\n");
-
-        SetConsoleTextAttribute(hConsole, 9);
-        printf("  Fomenu\n");
-        SetConsoleTextAttribute(hConsole, 8);
-        printf("     >muveletek\n");
-        SetConsoleTextAttribute(hConsole, 15);
-        if (sela == 0) SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
-        printf("        [1] - kerelem lista szerkesztese\n");
-        SetConsoleTextAttribute(hConsole, 15);
-        if (sela == 1) SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
-        printf("        [2] - szimulacio futtatasa\n");
-        inp = getchar();
-        inp -= 48;
-    }while(!(inp > 0 && inp < 3));
-    return inp;
-}
-
-int menu(int sela, int disable){
-    //sel %= 4;
-    char inp = 0;
-    do{
-        system("cls");
-        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-        printf("   __ _  __ _                    _          \n  / /(_)/ _| |_    ___  ___  ___| |__       \n / / | | |_| __|  / _ \\/ __|/ __| '_ \\    \n/ /__| |  _| |_  |  __/\\__ \\ (__| | | |   \n\\____/_|_|  \\__|  \\___||___/\\___|_| |_| \n\n");
-        SetConsoleTextAttribute(hConsole,9);
-        printf("<<szimulaciok\n");
-        SetConsoleTextAttribute(hConsole,8);
-        printf("     >diszjunktiv algoritmusok\n");
-        SetConsoleTextAttribute(hConsole,15);
-        if(sela==0) SetConsoleTextAttribute(hConsole,FOREGROUND_RED);
-        printf("        [1] - uj   primitiv   szimulacio inditasa\n");
-        SetConsoleTextAttribute(hConsole,15);
-        if(sela==1) SetConsoleTextAttribute(hConsole,FOREGROUND_RED);
-        printf("        [2] - uj     moho     szimulacio inditasa\n");
-        SetConsoleTextAttribute(hConsole,15);
-        if(sela==2) SetConsoleTextAttribute(hConsole,FOREGROUND_RED);
-        printf("        [3] - uj tervezo(ETA) szimulacio inditasa\n");
-        SetConsoleTextAttribute(hConsole,8);
-        printf("     >atfedo algoritmusok\n");
-        SetConsoleTextAttribute(hConsole,15);
-        if(sela==3) SetConsoleTextAttribute(hConsole,FOREGROUND_RED);
-        printf("        [4] - uj intelligens  szimulacio inditasa\n");
-
-        inp = getchar();
-        inp -= 48;
-    }while(!(inp > 0 && inp < 5));
-    return inp;
-}
-/*
-void disp(){
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    for (int i = maxlvl; i >= minlvl; --i) {
-        printf("%.2d ", i);
-        for (int j = 0; j < 4; ++j) {
-            if(lifts[j].state == 0) SetConsoleTextAttribute(hConsole, 8);
-            else if(lifts[j].state > 0 && 5 >lifts[j].state) SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN);
-            else if(lifts[j].state == 5) SetConsoleTextAttribute(hConsole, 15);
-            else if(lifts[j].state > 5 && 10 >lifts[j].state) SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
-
-
-            if(lifts[j].lvl == i) printf(" %c ",219);
-            else if(lifts[j].lvl == i+0.5f) printf(" %c ",223);
-            else if(lifts[j].lvl == i-0.5f) printf(" %c ",220);
-            else printf("   ");
-            SetConsoleTextAttribute(hConsole,15);
-        }
-        printf("\n");
-    }
-    printf("    A  B  C  D\n");
-}
-void disp_req_data(req bem){
-    printf("kerelem__ id: %d   at: %.3d    %.2d -> %.2d \n",bem.id,bem.time,bem.from,bem.to);
-}
-void disp_new_req(req bem, int _lift_ordered){
-    printf("  - uj kerelem__  %.2d -> %.2d   >>%c<< \n",bem.from,bem.to,_lift_ordered+65);
-}
-
-void disp_lift_info(){
-    int heading_symbols[] = {33,45,173};
-    printf("-----------------------------------------------\n");
-    for (int i = 0; i < 4; ++i) {
-        printf("%c %c (%d) [%d] >> ",i+65,heading_symbols[lifts[i].heading+1],lifts[i].state,lifts[i].capacity);
-        for (int j = 0; j < lifts[i].capacity; ++j) {
-            printf("%d: #%.2d(%.2d>>%.2d),  ",reqs[lifts[i].reqs_serving[j]].shortlist,lifts[i].reqs_serving[j],reqs[lifts[i].reqs_serving[j]].from, reqs[lifts[i].reqs_serving[j]].to);
-        }
-        printf("\n");
-    }
-    printf("-----------------------------------------------\n");
-}
-
-void disp_lift_info_adv(){
-    int heading_symbols[] = {33,45,173};
-    printf("-----------------------------------------------\n");
-    for (int i = 0; i < 4; ++i) {
-        printf("%c %c (%d) [%d] >> ",i+65,heading_symbols[lifts[i].heading+1],lifts[i].state,lifts[i].shortlists);
-        for (int j = 0; j < lifts[i].shortlists; ++j) {
-            printf("%d: {",j+1);
-            for (int k = 0; k < lifts[i].sl_serving[j].meret; ++k) {
-                printf("#%.2d(%.2d>>%.2d),  ",reqs[lifts[i].sl_serving[j].t[k]].id,reqs[lifts[i].sl_serving[j].t[k]].from,reqs[lifts[i].sl_serving[j].t[k]].to);
-            }
-            printf("} ");
-        }
-        printf("\n");
-    }
-    printf("-----------------------------------------------\n");
-}
-*/
 int getmin(int *t, int m){
     int mini = reqs[t[0]].from;
     for (int i = 1; i < m; ++i) {
@@ -193,10 +79,19 @@ int *finishedindexes(int *t, int m, int k){
     ans[0] = j;
     return ans;
 }
+void clearlifts(int n){
+    for (int i = 0; i < n; ++i) {
+        lifts[i].state = 0;
+        lifts[i].lvl = 0.0;
+        lifts[i].capacity = 0;
+        lifts[i].shortlists = 0;
+        lifts[i].sl_serving->up = 0;
+    }
+}
 
 int find_most_empty(){
     int minindex = 0;
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < liftdb; ++i) {
         if(lifts[i].capacity < lifts[minindex].capacity) minindex = i;
     }
     return minindex;
@@ -204,7 +99,7 @@ int find_most_empty(){
 int find_most_near(int lvl){
     int minindex = 0;
     int mini = 20;
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < liftdb; ++i) {
         if(lifts[i].capacity == 0) return i;
         if(lifts[i].capacity < 20) {
             if (abs(reqs[lifts[i].reqs_serving[lifts[i].capacity - 1]].to - lvl) < mini) {
@@ -218,7 +113,7 @@ int find_most_near(int lvl){
 int find_fastest(int lvl){
     int minindex = 0;
     int mini = INT_MAX;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < liftdb; i++) {
         int curcap = lifts[i].capacity;
         int curcount = 0;
         int j = 0;
@@ -243,16 +138,16 @@ int find_fastest(int lvl){
 }
 void find_complex(int flvl,int tlvl, int *ans){           //
     int minindex = 0;
-    int minshortlist = lifts[flvl%4].shortlists;         //worst case scenario: return a new, created shortlist for a
+    int minshortlist = lifts[flvl%liftdb].shortlists;         //worst case scenario: return a new, (random?) created shortlist for a
     int mini = INT_MAX;
     int up = flvl < tlvl ? 1 : 0;
-    for (int i = 0; i < 4; i++) {                // check each lift
+    for (int i = 0; i < liftdb; i++) {                // check each lift
         if(lifts[i].shortlists == 0){
             ans[0] = i; ans[1] = 0;
             return;
         }   // if no task >> do this
         for (int j = 0; j < lifts[i].shortlists; ++j) {
-            if(lifts[i].sl_serving[j].up == up && lifts[i].sl_serving[j].meret < 10) {   //last val could be 20 as well TODO
+            if(lifts[i].sl_serving[j].up == up && lifts[i].sl_serving[j].meret < 5) {   //last val could be 20 as well TODO
                 int curcount = 0;
                 int curmin = getmin(lifts[i].sl_serving[j].t,lifts[i].sl_serving[j].meret);
                 int curmax = getmax(lifts[i].sl_serving[j].t,lifts[i].sl_serving[j].meret);
@@ -275,7 +170,7 @@ void find_complex(int flvl,int tlvl, int *ans){           //
                     if(vane1 == 0) curcount += 4;
                     if(vane2 == 0) curcount += 4;
 
-                    curcount += j*20;           //TODO this with exact travel time
+                    curcount += j*30;           //TODO this with exact travel time
                     if(curcount < mini){
                         mini = curcount;
                         minindex = i;
@@ -298,33 +193,6 @@ void find_complex(int flvl,int tlvl, int *ans){           //
     printf("allocated:::: (%2d >> %2d)    - lift %d    shortlist %d",flvl,tlvl,minindex,minshortlist);
     return;
 }
-/*
-int find_complex_csicska(int flvl,int tlvl){
-    int minindex = 0;
-    int mini = INT_MAX;
-    int up = flvl < tlvl ? 1 : 0;
-    for (int i = 0; i < 4; i++) {                // check each lift
-        int layer = 0;
-        int j = 0;
-        while(layer <= lifts[i].shortlists){     // check each shortlist layer
-            req curreq = reqs[lifts[i].reqs_serving[j]];
-            int curup = curreq.from < curreq.to ? 1 : 0;
-            if(curup != up){                                                                                    //if this shortlist does not go into the same dir, jump to the next one
-                while(layer >= reqs[lifts[i].reqs_serving[j]].shortlist){
-                    j++;
-                }
-                layer++;
-            }
-            else{
-                int curcount = 0;
-                //should get shortlist border indexes
-
-            }
-        }
-
-    }
-}
-*/
 
 int move_lift(int cur){
     if(lifts[cur].capacity == 0) return 0;
@@ -357,10 +225,10 @@ int move_lift(int cur){
     if(lifts[cur].state == 4) reqs[lifts[cur].reqs_serving[0]].getintime = curtime; //TODO make for adv
     if(lifts[cur].state == 10){ //TELJESÍTVE
         int returned = lifts[cur].reqs_serving[0];
+        reqs[lifts[cur].reqs_serving[0]].getouttime = curtime;
         for (int i = 0; i < 20; ++i) {
             lifts[cur].reqs_serving[i] = lifts[cur].reqs_serving[i+1];
             reqs[lifts[cur].reqs_serving[i]].shortlist--;
-            reqs[lifts[cur].reqs_serving[i]].getouttime = curtime;
         }
         lifts[cur].state = 0;
         lifts[cur].capacity--;
@@ -461,7 +329,7 @@ int *move_lift_adv(int cur){
 int main() {
 
     minlvl = 0;
-    maxlvl = 18;
+    maxlvl = lvldb;
     FILE * fp;
     fp = fopen("input.txt","r");
 
@@ -472,6 +340,8 @@ int main() {
     int curid = 0;
     int input_size = 0;
     fscanf(fp,"%d",&input_size);
+    reqs = (req *) malloc(sizeof(req)*(input_size+1));
+    s_times_eplapsed = (int *) malloc(sizeof(int)*(input_size+1));
     while(!feof(fp) && curid < input_size){
         fscanf(fp,"%d",&curid);
         fscanf(fp,"%d %d %d", &reqs[curid].time, &reqs[curid].from, &reqs[curid].to);
@@ -483,8 +353,13 @@ int main() {
         disp_req_data(reqs[i]);
     }
 
-    int selb = mainmenu(-1,-1);
-    int sela =     menu(-1,-1);
+    int selb = mainmenu(-1,300);
+    int sela =     menu(-1,300);
+    editmenu(&lvldb, 1);
+    editmenu(&liftdb,2);
+    maxlvl = lvldb;
+    lifts = (lift*) malloc(sizeof(lift)*liftdb);
+    clearlifts(liftdb);
 
 
     system("cls"); //jelenlegi idő
@@ -492,7 +367,6 @@ int main() {
     int last_req_served = 0;
 
     curid--;
-    for (int i = 0; i < 4; ++i) { lifts[i].shortlists = 0; }
     while(curtime <= reqs[curid].time || last_req_served < curid){
         //TODO enable?disable
         system("cls");
@@ -540,6 +414,7 @@ int main() {
                 lifts[lift_ordered].reqs_serving[lifts[lift_ordered].capacity] = reqs[last_req_processed + 1].id; //add req id to lift array
                 lifts[lift_ordered].capacity++;
                 reqs[last_req_processed + 1].shortlist = lifts[lift_ordered].capacity;
+                reqs[last_req_processed+1].servedby = lift_ordered;
             } else {                //post process for advanced algs
                 if(lifts[ans[0]].shortlists > ans[1]){ //if returned shortlist is existent WAS:lifts[ans[0]].sl_serving[ans[1]].meret > 0
                     sl cursl = lifts[ans[0]].sl_serving[ans[1]];
@@ -557,6 +432,7 @@ int main() {
                     printf("set to 1");
                     //if(lifts[ans[0]].shortlists)
                 }
+                reqs[last_req_processed+1].servedby = ans[0];
             }
             disp_new_req(reqs[last_req_processed+1], ans[0]);
             last_req_processed++;
@@ -566,7 +442,7 @@ int main() {
 
         if(sela < 4){
             int completed_now = 0;
-            for (int i = 0; i < 4; ++i) {
+            for (int i = 0; i < liftdb; ++i) {
                 int a = move_lift(i);
                 if(a > 0){                                                               //each time a request is served
                     last_req_served++;
@@ -587,7 +463,7 @@ int main() {
             }
         }
         else{
-            for (int i = 0; i < 4; ++i) {
+            for (int i = 0; i < liftdb; ++i) {
                 int *a = move_lift_adv(i);
                 if(a != NULL){
                     for (int j = 0; j < a[0]; ++j) {//each time a request is served
@@ -610,18 +486,39 @@ int main() {
             }
         }
         //getchar();
-        Sleep(1);
+        Sleep(6);
         curtime++;
 
-
-
-
-
     }
-    fclose(fp);
-    getchar();
-    getchar();
-    getchar();
+
+    printf("   __ _  __ _                    _          \n  / /(_)/ _| |_    ___  ___  ___| |__       \n / / | | |_| __|  / _ \\/ __|/ __| '_ \\    \n/ /__| |  _| |_  |  __/\\__ \\ (__| | | |   \n\\____/_|_|  \\__|  \\___||___/\\___|_| |_| \n\n");
+    int selc = menuend();
+    if(selc == 1){
+        fclose(fp);
+        FILE *fp2;
+        fp2 = fopen("output.txt","w");
+        fprintf(fp2,"szimulacio kiertekelese: \n\n");
+        fprintf(fp2,"alg:  %d\n",sela);
+        fprintf(fp2,"time: %02d:%02d \n", (curtime/60),(curtime%60));
+        fprintf(fp2,"avg:  %d mp\n",(s_waitingsum/last_req_served+1));
+        fprintf(fp2,"htf:  %d / %d (%.3f) \n",s_usefullsum,s_uselesssum,((float)s_usefullsum/(float)s_uselesssum));
+        fprintf(fp2,"dev:  %.2lf \n",s_deviation);
+        for (int i = 1; i < curid+1; ++i) {
+            req cur = reqs[i];
+            fprintf(fp2,"#%.3d @%.3d (%.2d >> %.2d)    %c %d %d \n",cur.id,cur.time,cur.from,cur.to,cur.servedby+65,cur.getintime,cur.getouttime);
+        }
+        printf("kiiras kesz! \n");
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute(hConsole,8);
+        printf(">> output.txt");
+        fclose(fp2);
+    }
+    printf("\n \n \n Nyomja meg az ENTER-t a kilepeshez!");
+
+
+    free(lifts);
+    free(reqs);
+    free(s_times_eplapsed);
     getchar();
     return 0;
 }
