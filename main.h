@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <conio.h>
 #include <math.h>
+#include <string.h>
 
 #ifndef LIFT_MAIN_H
 #define LIFT_MAIN_H
@@ -46,5 +47,12 @@ int menu(int sela, int disable);
 int mainmenu(int sela, int disable);
 void editmenu(int *cel, int mode);
 int menuend();
+int find_most_empty();
+int find_most_near(int lvl);
+int find_fastest(int lvl);
+void find_complex(int flvl,int tlvl, int *ans);
+int move_lift(int cur, int curtime);
+int *move_lift_adv(int cur, int curtime);
+int charstartoint(char *bem);
 
 #endif //LIFT_MAIN_H

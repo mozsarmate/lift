@@ -33,6 +33,10 @@ double s_deviation = 0;               // not needed to be global
 float s_avg = 0;                      // not needed to be global
 int curtime = 0;
 
+int charstartoint(char bem[20]);
+
+void editFile(FILE *fp, int curid);
+
 int getmin(int *t, int m){
     int mini = reqs[t[0]].from;
     for (int i = 1; i < m; ++i) {
@@ -57,7 +61,7 @@ int shouldstop(int *t, int m, int k){
     }
     return 0;                                   //TODO maybe could be replaced with a sorted t array for each sl
 }
-int *startededindexes(int *t, int m, int k){
+int *startedindexes(int *t, int m, int k){
     int *ans= (int *) malloc(sizeof(int)*20);
     int j = 0;
     for (int i = 0; i < m; ++i) {
@@ -86,245 +90,10 @@ void clearlifts(int n){
         lifts[i].capacity = 0;
         lifts[i].shortlists = 0;
         lifts[i].sl_serving->up = 0;
+        lifts[i].heading = 0;
     }
 }
 
-int find_most_empty(){
-    int minindex = 0;
-    for (int i = 0; i < liftdb; ++i) {
-        if(lifts[i].capacity < lifts[minindex].capacity) minindex = i;
-    }
-    return minindex;
-}
-int find_most_near(int lvl){
-    int minindex = 0;
-    int mini = 20;
-    for (int i = 0; i < liftdb; ++i) {
-        if(lifts[i].capacity == 0) return i;
-        if(lifts[i].capacity < 20) {
-            if (abs(reqs[lifts[i].reqs_serving[lifts[i].capacity - 1]].to - lvl) < mini) {
-                minindex = i;
-                mini = abs(reqs[lifts[i].reqs_serving[lifts[i].capacity - 1]].to - lvl);
-            }
-        }
-    }
-    return minindex;
-}
-int find_fastest(int lvl){
-    int minindex = 0;
-    int mini = INT_MAX;
-    for (int i = 0; i < liftdb; i++) {
-        int curcap = lifts[i].capacity;
-        int curcount = 0;
-        int j = 0;
-        if(0 < lifts[i].state && lifts[i].state < 5) { curcount -= lifts[i].state; }
-        if(lifts[i].state == 5)                      { j=1; curcount += 2*abs(reqs[lifts[i].reqs_serving[j]].from-reqs[lifts[i].reqs_serving[j]].to); }
-        if(5 < lifts[i].state)                       { j=1; curcount += 9-lifts[i].state; }
-        while (j < curcap) {
-            if(j > 0) {
-                curcount += 2*abs(reqs[lifts[i].reqs_serving[j-1]].to-reqs[lifts[i].reqs_serving[j]].from);  //adding travel to from
-            }
-            curcount += 4;                                                                                      //adding waiting
-            curcount += 2*abs(reqs[lifts[i].reqs_serving[j]].from-reqs[lifts[i].reqs_serving[j]].to);        //adding transporting travel time
-            curcount += 4;                                                                                      //adding waiting
-            j++;
-        }
-        if(curcount < mini){
-            mini = curcount;
-            minindex = i;
-        }
-    }
-    return minindex;
-}
-void find_complex(int flvl,int tlvl, int *ans){           //
-    int minindex = 0;
-    int minshortlist = lifts[flvl%liftdb].shortlists;         //worst case scenario: return a new, (random?) created shortlist for a
-    int mini = INT_MAX;
-    int up = flvl < tlvl ? 1 : 0;
-    for (int i = 0; i < liftdb; i++) {                // check each lift
-        if(lifts[i].shortlists == 0){
-            ans[0] = i; ans[1] = 0;
-            return;
-        }   // if no task >> do this
-        for (int j = 0; j < lifts[i].shortlists; ++j) {
-            if(lifts[i].sl_serving[j].up == up && lifts[i].sl_serving[j].meret < 5) {   //last val could be 20 as well TODO
-                int curcount = 0;
-                int curmin = getmin(lifts[i].sl_serving[j].t,lifts[i].sl_serving[j].meret);
-                int curmax = getmax(lifts[i].sl_serving[j].t,lifts[i].sl_serving[j].meret);
-                if(!(j == 0 && ((up && flvl < lifts[i].lvl) || (!up && flvl > lifts[i].lvl)))){         //only if not passed
-                    if(curmin > flvl){
-                        curcount += 2*abs(curmin-flvl);
-                    } else if(curmax < flvl){
-                        curcount += 2*abs(curmax-flvl);
-                    }
-                    if(curmin > tlvl){
-                        curcount += 2*abs(curmin-tlvl);
-                    } else if(curmax < tlvl){
-                        curcount += 2*abs(curmax-tlvl);
-                    }
-                    int vane1 = 0, vane2 = 0;               //if somebody else also gets off there, dont charge time
-                    for (int k = 0; k < lifts[i].sl_serving[j].meret; ++k) {
-                        if(reqs[lifts[i].sl_serving[j].t[k]].from == flvl) vane1++;
-                        if(reqs[lifts[i].sl_serving[j].t[k]].to == tlvl) vane2++;
-                    }
-                    if(vane1 == 0) curcount += 4;
-                    if(vane2 == 0) curcount += 4;
-
-                    curcount += j*30;           //TODO this with exact travel time
-                    if(curcount < mini){
-                        mini = curcount;
-                        minindex = i;
-                        minshortlist = j;
-                    }
-                }
-
-            }
-        }
-        int curcounta = lifts[i].shortlists * 30;
-        if(curcounta < mini){
-            mini = curcounta;
-            minindex = i;
-            minshortlist = lifts[i].shortlists;
-            printf("allocated:NEW:NEW:NEW: (%2d >> %2d)    - lift %d    shortlist %d",flvl,tlvl,minindex,minshortlist);
-        }
-    }
-    ans[0] = minindex;
-    ans[1] = minshortlist;
-    printf("allocated:::: (%2d >> %2d)    - lift %d    shortlist %d",flvl,tlvl,minindex,minshortlist);
-    return;
-}
-
-int move_lift(int cur){
-    if(lifts[cur].capacity == 0) return 0;
-    if(lifts[cur].state == 0){
-        int heading = reqs[lifts[cur].reqs_serving[0]].from;
-        if(heading == lifts[cur].lvl){
-            lifts[cur].state = 1;
-        }
-        else if(heading > lifts[cur].lvl) lifts[cur].lvl += 0.5f;
-        else lifts[cur].lvl -= 0.5f;
-
-        if(heading > lifts[cur].lvl) lifts[cur].heading = 1;
-        else if(heading < lifts[cur].lvl) lifts[cur].heading = -1;
-    }
-    else if(lifts[cur].state > 0 && 5 >lifts[cur].state){ lifts[cur].state++; lifts[cur].heading = 0;}
-    else if(lifts[cur].state == 5){
-        int heading = reqs[lifts[cur].reqs_serving[0]].to;
-        if(heading == lifts[cur].lvl){
-            lifts[cur].state = 6;
-        }
-        else if(heading > lifts[cur].lvl) lifts[cur].lvl += 0.5f;
-        else lifts[cur].lvl -= 0.5f;
-
-        if(heading > lifts[cur].lvl) lifts[cur].heading = 1;
-        else if(heading < lifts[cur].lvl) lifts[cur].heading = -1;
-    }
-    else if(lifts[cur].state > 5 && 10 >lifts[cur].state){ lifts[cur].state++; lifts[cur].heading = 0;}
-    //move req blocks
-    //TODO do that with a queue
-    if(lifts[cur].state == 4) reqs[lifts[cur].reqs_serving[0]].getintime = curtime; //TODO make for adv
-    if(lifts[cur].state == 10){ //TELJESÍTVE
-        int returned = lifts[cur].reqs_serving[0];
-        reqs[lifts[cur].reqs_serving[0]].getouttime = curtime;
-        for (int i = 0; i < 20; ++i) {
-            lifts[cur].reqs_serving[i] = lifts[cur].reqs_serving[i+1];
-            reqs[lifts[cur].reqs_serving[i]].shortlist--;
-        }
-        lifts[cur].state = 0;
-        lifts[cur].capacity--;
-        return returned+1;
-    }
-
-    return 0;
-}
-int *move_lift_adv(int cur){
-    if(lifts[cur].shortlists == 0) return 0;
-    int heading_up = lifts[cur].sl_serving[0].up;
-    int *t = lifts[cur].sl_serving[0].t;
-    int m = lifts[cur].sl_serving[0].meret;
-
-    if(lifts[cur].state == 0){
-        int heading_to_start = heading_up == 1 ? getmin(t,m) : getmax(t,m);
-        if(heading_to_start == lifts[cur].lvl){
-            lifts[cur].state = 1;
-        }
-        else if(heading_to_start > lifts[cur].lvl) lifts[cur].lvl += 0.5f;
-        else lifts[cur].lvl -= 0.5f;
-    }
-    else if(lifts[cur].state > 0 && 5 >lifts[cur].state){
-        lifts[cur].state++; //lifts[cur].heading = 0;
-        if(lifts[cur].state == 4){
-            int *tf = startededindexes(lifts[cur].sl_serving[0].t,lifts[cur].sl_serving[0].meret,lifts[cur].lvl);
-            int started_now = tf[0];
-            for (int i = 0; i < started_now; ++i) {
-                reqs[tf[i+1]].getintime = curtime;
-            }
-            free(tf);
-        }
-    }
-
-    else if(lifts[cur].state == 5){
-        int curshouldstop = 0;
-        if((int) (lifts[cur].lvl*10) % 10 == 0) {                   //if lift is on an actual floor should stop?
-            curshouldstop = shouldstop(t, m, lifts[cur].lvl);
-        }
-
-        if (curshouldstop == 1) {
-            lifts[cur].state = 6;
-        } else if (curshouldstop == -1) {
-            lifts[cur].state = 1;//todo not =1 ?  ??what nem értem a saját kommentem
-        } else {
-            if (heading_up == 1) lifts[cur].lvl += 0.5f;
-            else lifts[cur].lvl -= 0.5f;
-
-        }
-
-    }
-    else if(lifts[cur].state > 5 && 10 > lifts[cur].state){
-        lifts[cur].state++; //lifts[cur].heading = 0;
-    }
-
-    else if(lifts[cur].state == 10){ //1 TELJESÍTVE
-        //asdf
-        int *tf = finishedindexes(t,m,lifts[cur].lvl);  //returns size + array of ids of finished reqs
-        int finished_now = tf[0];
-        lifts[cur].sl_serving[0].meret -= finished_now;
-        int *returned = (int *) malloc (sizeof(int)*20);
-        for (int i = 0; i < finished_now; ++i) {
-            reqs[tf[i+1]].getouttime = curtime;
-
-            for (int j = 0; j < m; ++j) {
-                if(tf[i+1] == lifts[cur].sl_serving[0].t[j]){
-                    for (int k = j; k < m-1; ++k) {
-                        lifts[cur].sl_serving[0].t[k] = lifts[cur].sl_serving[0].t[k+1];
-                    }
-                    //lifts[cur].sl_serving[0].meret--;
-                }
-            }
-            returned[i+1] = tf[i+1];
-        }
-        returned[0] = finished_now;
-        if(lifts[cur].sl_serving[0].meret == 0){                    //if this shortlist is finished, move all one step closer
-            for (int i = 0; i < lifts[cur].shortlists-1; ++i) {
-                lifts[cur].sl_serving[i] = lifts[cur].sl_serving[i+1];
-            }
-            lifts[cur].shortlists--;
-            lifts[cur].state = 0;
-        } else {                                                    //if this is not finished, go and find the next station
-            lifts[cur].state = 5;
-        }
-        free(tf);
-        return returned;
-    }
-
-    if(lifts[cur].lvl < 0){
-        printf("ER");
-    }
-
-
-
-    return 0;
-}       //returns array (until -1) of served reqs
 
 int main() {
 
@@ -338,23 +107,39 @@ int main() {
         return 0;
     }
     int curid = 0;
+    int ervenytelen = 0;
     int input_size = 0;
     fscanf(fp,"%d",&input_size);
     reqs = (req *) malloc(sizeof(req)*(input_size+1));
     s_times_eplapsed = (int *) malloc(sizeof(int)*(input_size+1));
     while(!feof(fp) && curid < input_size){
         fscanf(fp,"%d",&curid);
-        fscanf(fp,"%d %d %d", &reqs[curid].time, &reqs[curid].from, &reqs[curid].to);
-        reqs[curid].id = curid;
-        reqs[curid].getintime = -1;
-        reqs[curid].getouttime = -1;
+        if(curid < 0) ervenytelen++;
+        else {
+            fscanf(fp, "%d %d %d", &reqs[curid].time, &reqs[curid].from, &reqs[curid].to);
+            reqs[curid].id = curid;
+            reqs[curid].getintime = -1;
+            reqs[curid].getouttime = -1;
+        }
     }
+    fclose(fp);
+    /*
     for (int i = 0; i < curid; ++i) {
         disp_req_data(reqs[i]);
-    }
+    }*/
+
 
     int selb = mainmenu(-1,300);
+    system("cls");
+    if(selb == 1){
+        editFile(fp, curid);
+        return 0;
+    }
     int sela =     menu(-1,300);
+    //suggestions
+    lvldb = 18;
+    liftdb = 4;
+    //user updates?
     editmenu(&lvldb, 1);
     editmenu(&liftdb,2);
     maxlvl = lvldb;
@@ -362,15 +147,23 @@ int main() {
     clearlifts(liftdb);
 
 
-    system("cls"); //jelenlegi idő
+
+
+
+
+
+
     int last_req_processed = 0;
     int last_req_served = 0;
 
     curid--;
-    while(curtime <= reqs[curid].time || last_req_served < curid){
+    while(curtime <= reqs[curid].time || last_req_served < curid+1){
         //TODO enable?disable
         system("cls");
         //
+        if(curtime == 10){
+            printf("NAGO");
+        }
         disp();
         if(sela < 4)
             disp_lift_info();
@@ -378,7 +171,7 @@ int main() {
             disp_lift_info_adv();
 
         printf("\n > ido:                        00:%02d:%02d ", (curtime/60),(curtime%60));
-        printf("\n\n > kerelmek:                   %d felveve,  %d teljesitve\n   ",last_req_processed+1,last_req_served+1);
+        printf("\n\n > kerelmek:                   %d felveve,  %d teljesitve\n   ",last_req_processed,last_req_served+1);
         for (int i = 0; i < input_size; ++i) {
 
             if(last_req_served >= i+1) printf("%c",178);
@@ -390,7 +183,7 @@ int main() {
         if(s_uselesssum > 0)      printf(" > hatasfok:                   %d / %d (%.3f) \n",s_usefullsum,s_uselesssum,((float)s_usefullsum/(float)s_uselesssum));
         if(last_req_served > 0) printf(" > szoras:                     %.2lf \n",s_deviation);
 
-        while(reqs[last_req_processed+1].time <= curtime && last_req_processed < curid){
+        while(reqs[last_req_processed+1].time <= curtime && last_req_processed < curid+1){
 
         //ide kell a logika
             int lift_ordered = 0;
@@ -415,12 +208,14 @@ int main() {
                 lifts[lift_ordered].capacity++;
                 reqs[last_req_processed + 1].shortlist = lifts[lift_ordered].capacity;
                 reqs[last_req_processed+1].servedby = lift_ordered;
+                disp_new_req(reqs[last_req_served+1],lift_ordered);
             } else {                //post process for advanced algs
                 if(lifts[ans[0]].shortlists > ans[1]){ //if returned shortlist is existent WAS:lifts[ans[0]].sl_serving[ans[1]].meret > 0
                     sl cursl = lifts[ans[0]].sl_serving[ans[1]];
                     int curmeret = cursl.meret;
                     lifts[ans[0]].sl_serving[ans[1]].t[curmeret] = reqs[last_req_processed + 1].id;
                     lifts[ans[0]].sl_serving[ans[1]].meret++;
+
                 } else{
                     //create shortlist
                     sl newsl;
@@ -433,8 +228,9 @@ int main() {
                     //if(lifts[ans[0]].shortlists)
                 }
                 reqs[last_req_processed+1].servedby = ans[0];
+                disp_new_req(reqs[last_req_processed+1], ans[0]);
             }
-            disp_new_req(reqs[last_req_processed+1], ans[0]);
+
             last_req_processed++;
         }
         printf("\n \n");
@@ -443,7 +239,7 @@ int main() {
         if(sela < 4){
             int completed_now = 0;
             for (int i = 0; i < liftdb; ++i) {
-                int a = move_lift(i);
+                int a = move_lift(i,curtime);
                 if(a > 0){                                                               //each time a request is served
                     last_req_served++;
                     int time_eplapsed = curtime - reqs[reqs[last_req_served].id-1].time; //TODO make for adv
@@ -464,7 +260,7 @@ int main() {
         }
         else{
             for (int i = 0; i < liftdb; ++i) {
-                int *a = move_lift_adv(i);
+                int *a = move_lift_adv(i,curtime);
                 if(a != NULL){
                     for (int j = 0; j < a[0]; ++j) {//each time a request is served
                         last_req_served++; // not really valid for us today, anyways
@@ -494,7 +290,6 @@ int main() {
     printf("   __ _  __ _                    _          \n  / /(_)/ _| |_    ___  ___  ___| |__       \n / / | | |_| __|  / _ \\/ __|/ __| '_ \\    \n/ /__| |  _| |_  |  __/\\__ \\ (__| | | |   \n\\____/_|_|  \\__|  \\___||___/\\___|_| |_| \n\n");
     int selc = menuend();
     if(selc == 1){
-        fclose(fp);
         FILE *fp2;
         fp2 = fopen("output.txt","w");
         fprintf(fp2,"szimulacio kiertekelese: \n\n");
@@ -521,4 +316,92 @@ int main() {
     free(s_times_eplapsed);
     getchar();
     return 0;
+}
+
+void editFile(FILE *fp, int curid) {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, 15);
+    printf("   __ _  __ _                    _          \n  / /(_)/ _| |_    ___  ___  ___| |__       \n / / | | |_| __|  / _ \\/ __|/ __| '_ \\    \n/ /__| |  _| |_  |  __/\\__ \\ (__| | | |   \n\\____/_|_|  \\__|  \\___||___/\\___|_| |_| \n\n");
+
+    SetConsoleTextAttribute(hConsole, 9);
+    printf("  Fajl szerkesztes\n");
+    SetConsoleTextAttribute(hConsole, 8);
+    printf("     >Ird be a szerkeszteni kivant sor szamat, vagy egy \"A\" karaktert a teljes fajl ujrairasahoz!\n      ");
+    SetConsoleTextAttribute(hConsole, 15);
+    char bem[20];
+    scanf("%s",&bem);
+    if(!strcmp(bem,"A")){       //teljes szerkesztése
+        fp = fopen("input.txt","w");
+        int n;
+        int counter = 0;
+        int lasttime = 0;
+        int tmp1 = 0, tmp2, tmp3;
+        SetConsoleTextAttribute(hConsole, 8);
+        printf("     >>>Add meg az kerelmek vegso szamat!\n      ");
+        SetConsoleTextAttribute(hConsole, 15);
+        scanf("%d",&n);
+        fprintf(fp,"%d\n",n);
+        while(tmp1 != -1 && counter < n) {
+            SetConsoleTextAttribute(hConsole, 8);
+            printf("     >>>Add meg a %d. sor maradek 3 adatjat (szokozzel elvalasztva)!\n         %d ",counter+1,counter+1);
+            SetConsoleTextAttribute(hConsole, 15);
+            scanf("%d", &tmp1);
+            if(tmp1 != -1){
+                scanf("%d %d", &tmp2, &tmp3);
+                if(tmp1 < lasttime || tmp2 == tmp3 || tmp2 < 0 || tmp3 < 0 || tmp2 > 19 || tmp3 > 19){
+                    SetConsoleTextAttribute(hConsole,FOREGROUND_RED);
+                    printf("            nem megfelelo bemenet\n");
+                    SetConsoleTextAttribute(hConsole, 15);
+                }
+                else {
+                    fprintf(fp, "%d %d %d %d\n", counter + 1, tmp1, tmp2, tmp3);
+                    lasttime = tmp1;
+                    counter++;
+                }
+            }
+        }
+        for (int i = counter; i < n; ++i) {
+            fprintf(fp,"-1 -1 -1 -1\n");
+        }
+        fclose(fp);
+    }
+    else {
+        int bemint = charstartoint(bem);
+        while (bemint < curid && bemint > 0) {
+            SetConsoleTextAttribute(hConsole, 8);
+            printf("     >>>Add meg a %d. sor maradek 2 adatjat (szokozzel elvalasztva)!\n         %d %d ", bemint,
+                   bemint, reqs[bemint].time);
+            SetConsoleTextAttribute(hConsole, 15);
+            scanf("%d %d", &reqs[bemint].from, &reqs[bemint].to);
+
+
+            SetConsoleTextAttribute(hConsole, 8);
+            printf("     >Ird be az ujabb szerkeszteni kivant sor szamat, vagy adj meg ervenytelen bemenetet a kilepeshez es menteshez!\n      ");
+            SetConsoleTextAttribute(hConsole, 15);
+            scanf("%s", &bem);
+            bemint = charstartoint(bem);
+        }
+        fp = fopen("input.txt","w");
+        fprintf(fp,"%d\n",curid);
+        for (int i = 1; i < curid; ++i) {
+            fprintf(fp, "%d %d %d %d\n",reqs[i].id,reqs[i].time,reqs[i].from,reqs[i].to);
+        }
+    }
+    printf("\nA fajl szerkesztese veget ert, inditsd ujra a programot a megfelelo mukodeshez!\n");
+    SetConsoleTextAttribute(hConsole, 8);
+    printf("A program hamarosan bezarodik...");
+    free(reqs);
+    Sleep(3000);
+}
+
+int charstartoint(char *bem) {
+    int d;
+    int c = 0;
+    while(bem[c] != '\0'){
+        if(bem[c] < 48 || bem[c] > 57) return -1;
+        d *= 10;
+        d += bem[c]-48;
+        c++;
+    }
+    return d;
 }
