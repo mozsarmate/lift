@@ -25,59 +25,26 @@
 */
 
 
-int *s_times_eplapsed = {-1}; //TODO not needed to be global
-int s_waitingsum = 0;                 // not needed to be global
-int s_uselesssum = 0;                 // not needed to be global
-int s_usefullsum = 0;                 // not needed to be global
-double s_deviation = 0;               // not needed to be global
-float s_avg = 0;                      // not needed to be global
+
 int curtime = 0;
 
-int charstartoint(char bem[20]);
 
-void editFile(FILE *fp, int curid);
-
-
-void clearlifts(int n){
-    for (int i = 0; i < n; ++i) {
-        lifts[i].state = 0;
-        lifts[i].lvl = 0.0;
-        lifts[i].capacity = 0;
-        lifts[i].shortlists = 0;
-        lifts[i].sl_serving->up = 0;
-        lifts[i].heading = 0;
-    }
-}
 
 
 int main() {
 
     minlvl = 0;
     maxlvl = lvldb;
-    FILE * fp;
-    fp = fopen("input.txt","r");
-
-    if (NULL == fp) {
-        printf("Nem lehetett megnyitni a fajlt :( \n");
-        return 0;
-    }
     int curid = 0;
-    int ervenytelen = 0;
     int input_size = 0;
-    fscanf(fp,"%d",&input_size);
-    reqs = (req *) malloc(sizeof(req)*(input_size+1));
-    s_times_eplapsed = (int *) malloc(sizeof(int)*(input_size+1));
-    while(!feof(fp) && curid < input_size){
-        fscanf(fp,"%d",&curid);
-        if(curid < 0) ervenytelen++;
-        else {
-            fscanf(fp, "%d %d %d", &reqs[curid].time, &reqs[curid].from, &reqs[curid].to);
-            reqs[curid].id = curid;
-            reqs[curid].getintime = -1;
-            reqs[curid].getouttime = -1;
-        }
-    }
-    fclose(fp);
+    int s_waitingsum = 0;                 
+    int s_uselesssum = 0;                 
+    int s_usefullsum = 0;                 
+    double s_deviation = 0;               
+    float s_avg = 0;                      
+    FILE *fp;
+    int *s_times_eplapsed = beolvasas(&curid, &input_size, &fp);
+
     /*
     for (int i = 0; i < curid; ++i) {
         disp_req_data(reqs[i]);
@@ -113,32 +80,12 @@ int main() {
 
     curid--;
     while(curtime <= reqs[curid].time || last_req_served < curid+1){
-        //TODO enable?disable
+
         system("cls");
-        //
-        if(curtime == 10){
-            printf("NAGO");
-        }
-        disp();
-        if(sela < 4)
-            disp_lift_info();
-        else
-            disp_lift_info_adv();
 
-        printf("\n > ido:                        00:%02d:%02d ", (curtime/60),(curtime%60));
-        printf("\n\n > kerelmek:                   %d felveve,  %d teljesitve\n   ",last_req_processed,last_req_served+1);
-        for (int i = 0; i < input_size; ++i) {
+        draw_canvas(input_size, sela, last_req_processed, last_req_served, curtime, s_waitingsum, s_usefullsum, s_uselesssum, s_deviation);
 
-            if(last_req_served >= i+1) printf("%c",178);
-            else if(last_req_processed >= i+1) printf("%c",177);
-            else printf("%c",176);
-        }
-        printf(" %d\n\n", input_size);
-        if(last_req_served > 0) printf(" > atlagos kiszolgalasi ido:   %d mp\n",(s_waitingsum/last_req_served+1));
-        if(s_uselesssum > 0)      printf(" > hatasfok:                   %d / %d (%.3f) \n",s_usefullsum,s_uselesssum,((float)s_usefullsum/(float)s_uselesssum));
-        if(last_req_served > 0) printf(" > szoras:                     %.2lf \n",s_deviation);
-
-        while(reqs[last_req_processed+1].time <= curtime && last_req_processed < curid+1){
+        while(reqs[last_req_processed+1].time <= curtime && last_req_processed < curid+2){      //todo was +1 (iso +2
 
         //ide kell a logika
             int lift_ordered = 0;
@@ -158,8 +105,8 @@ int main() {
                 find_complex(reqs[last_req_processed+1].from,reqs[last_req_processed+1].to,ans);
             }
             //----------------------------------------------------------------------------------------------------------
-            if(sela <= 3) {         //post process for simple algs
-                lifts[lift_ordered].reqs_serving[lifts[lift_ordered].capacity] = reqs[last_req_processed + 1].id; //add req id to lift array
+            if(sela <= 3) {         //post process for simple algs      // V TODO not +1?
+                lifts[lift_ordered].reqs_serving[lifts[lift_ordered].capacity] = &reqs[last_req_processed + 1]; //add req id to lift array
                 lifts[lift_ordered].capacity++;
                 reqs[last_req_processed + 1].shortlist = lifts[lift_ordered].capacity;
                 reqs[last_req_processed+1].servedby = lift_ordered;
@@ -189,18 +136,21 @@ int main() {
         printf("\n \n");
 
 
+
+
+
         if(sela < 4){
             int completed_now = 0;
             for (int i = 0; i < liftdb; ++i) {
                 int a = move_lift(i,curtime);
                 if(a > 0){                                                               //each time a request is served
                     last_req_served++;
-                    int time_eplapsed = curtime - reqs[a].time; //TODO make for adv
+                    int time_eplapsed = curtime - reqs[a-1].time; //TODO make for adv
                     s_waitingsum += time_eplapsed;
-                    s_avg = (float)s_waitingsum / (float)last_req_served + 1;
+                    s_avg = (float)s_waitingsum / (float)last_req_served;
                     s_times_eplapsed[last_req_served] = time_eplapsed;
                     double curdeviation = 0;
-                    for (int j = 1; j < last_req_served+1; ++j) {
+                    for (int j = 1; j < last_req_served; ++j) {         //todo was +1
                         curdeviation += pow((double)(s_times_eplapsed[j] - s_avg), 2);
                     }
                     curdeviation /= last_req_served;
@@ -216,14 +166,14 @@ int main() {
                 int *a = move_lift_adv(i,curtime);
                 if(a != NULL){
                     for (int j = 0; j < a[0]; ++j) {//each time a request is served
-                        last_req_served++; // not really valid for us today, anyways
+                        last_req_served++;
                         int time_eplapsed = curtime - reqs[a[j+1]].time;
                         s_waitingsum += time_eplapsed;
-                        s_avg = (float)s_waitingsum / (float)last_req_served + 1;
+                        s_avg = (float)s_waitingsum / (float)last_req_served;
                         s_times_eplapsed[last_req_served] = time_eplapsed;
                         double curdeviation = 0;
-                        for (int j = 1; j < last_req_served+2; ++j) {
-                            curdeviation += pow((double)(s_times_eplapsed[j] - s_avg), 2);
+                        for (int k = 1; k < last_req_served+1; ++k) {
+                            curdeviation += pow((double)(s_times_eplapsed[k] - s_avg), 2);
                         }
                         curdeviation /= last_req_served;
                         s_deviation = sqrt(curdeviation);
@@ -239,27 +189,13 @@ int main() {
         curtime++;
 
     }
+    system("cls");
 
+    draw_canvas(input_size, sela, last_req_processed, last_req_served, curtime, s_waitingsum, s_usefullsum, s_uselesssum, s_deviation);
     disp_logo();
     int selc = menuend();
     if(selc == 1){
-        FILE *fp2;
-        fp2 = fopen("output.txt","w");
-        fprintf(fp2,"szimulacio kiertekelese: \n\n");
-        fprintf(fp2,"alg:  %d\n",sela);
-        fprintf(fp2,"time: %02d:%02d \n", (curtime/60),(curtime%60));
-        fprintf(fp2,"avg:  %d mp\n",(s_waitingsum/last_req_served+1));
-        fprintf(fp2,"htf:  %d / %d (%.3f) \n",s_usefullsum,s_uselesssum,((float)s_usefullsum/(float)s_uselesssum));
-        fprintf(fp2,"dev:  %.2lf \n",s_deviation);
-        for (int i = 1; i < curid+1; ++i) {
-            req cur = reqs[i];
-            fprintf(fp2,"#%.3d @%.3d (%.2d >> %.2d)    %c %d %d \n",cur.id,cur.time,cur.from,cur.to,cur.servedby+65,cur.getintime,cur.getouttime);
-        }
-        printf("kiiras kesz! \n");
-        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-        SetConsoleTextAttribute(hConsole,8);
-        printf(">> output.txt");
-        fclose(fp2);
+        kiiras(curid, sela, last_req_served,curtime,s_waitingsum,s_uselesssum,s_uselesssum,s_deviation);
     }
     printf("\n \n \n Nyomja meg az ENTER-t a kilepeshez!");
 
@@ -271,89 +207,4 @@ int main() {
     return 0;
 }
 
-void editFile(FILE *fp, int curid) {
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    SetConsoleTextAttribute(hConsole, 15);
 
-    SetConsoleTextAttribute(hConsole, 9);
-    printf("  Fajl szerkesztes\n");
-    SetConsoleTextAttribute(hConsole, 8);
-    printf("     >Ird be a szerkeszteni kivant sor szamat, vagy egy \"A\" karaktert a teljes fajl ujrairasahoz!\n      ");
-    SetConsoleTextAttribute(hConsole, 15);
-    char bem[20];
-    scanf("%s",&bem);
-    if(!strcmp(bem,"A")){       //teljes szerkesztése
-        fp = fopen("input.txt","w");
-        int n;
-        int counter = 0;
-        int lasttime = 0;
-        int tmp1 = 0, tmp2, tmp3;
-        SetConsoleTextAttribute(hConsole, 8);
-        printf("     >>>Add meg az kerelmek vegso szamat!\n      ");
-        SetConsoleTextAttribute(hConsole, 15);
-        scanf("%d",&n);
-        fprintf(fp,"%d\n",n);
-        while(tmp1 != -1 && counter < n) {
-            SetConsoleTextAttribute(hConsole, 8);
-            printf("     >>>Add meg a %d. sor maradek 3 adatjat (szokozzel elvalasztva)!\n         %d ",counter+1,counter+1);
-            SetConsoleTextAttribute(hConsole, 15);
-            scanf("%d", &tmp1);
-            if(tmp1 != -1){
-                scanf("%d %d", &tmp2, &tmp3);
-                if(tmp1 < lasttime || tmp2 == tmp3 || tmp2 < 0 || tmp3 < 0 || tmp2 > 19 || tmp3 > 19){
-                    SetConsoleTextAttribute(hConsole,FOREGROUND_RED);
-                    printf("            nem megfelelo bemenet\n");
-                    SetConsoleTextAttribute(hConsole, 15);
-                }
-                else {
-                    fprintf(fp, "%d %d %d %d\n", counter + 1, tmp1, tmp2, tmp3);
-                    lasttime = tmp1;
-                    counter++;
-                }
-            }
-        }
-        for (int i = counter; i < n; ++i) {
-            fprintf(fp,"-1 -1 -1 -1\n");
-        }
-        fclose(fp);
-    }
-    else {
-        int bemint = charstartoint(bem);
-        while (bemint < curid && bemint > 0) {
-            SetConsoleTextAttribute(hConsole, 8);
-            printf("     >>>Add meg a %d. sor maradek 2 adatjat (szokozzel elvalasztva)!\n         %d %d ", bemint,
-                   bemint, reqs[bemint].time);
-            SetConsoleTextAttribute(hConsole, 15);
-            scanf("%d %d", &reqs[bemint].from, &reqs[bemint].to);
-
-
-            SetConsoleTextAttribute(hConsole, 8);
-            printf("     >Ird be az ujabb szerkeszteni kivant sor szamat, vagy adj meg ervenytelen bemenetet a kilepeshez es menteshez!\n      ");
-            SetConsoleTextAttribute(hConsole, 15);
-            scanf("%s", &bem);
-            bemint = charstartoint(bem);
-        }
-        fp = fopen("input.txt","w");
-        fprintf(fp,"%d\n",curid);
-        for (int i = 1; i < curid; ++i) {
-            fprintf(fp, "%d %d %d %d\n",reqs[i].id,reqs[i].time,reqs[i].from,reqs[i].to);
-        }
-    }
-    printf("\nA fajl szerkesztese veget ert, inditsd ujra a programot a megfelelo mukodeshez!\n");
-    SetConsoleTextAttribute(hConsole, 8);
-    printf("A program hamarosan bezarodik...");
-    free(reqs);
-    Sleep(3000);
-}
-
-int charstartoint(char *bem) {
-    int d;
-    int c = 0;
-    while(bem[c] != '\0'){
-        if(bem[c] < 48 || bem[c] > 57) return -1;
-        d *= 10;
-        d += bem[c]-48;
-        c++;
-    }
-    return d;
-}

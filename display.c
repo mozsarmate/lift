@@ -1,6 +1,30 @@
 //this script extends main.c
 #include "main.h"
 
+
+
+void draw_canvas(int input_size, int sela, int last_req_processed, int last_req_served, int curtime, int s_waitingsum, int s_usefullsum, int s_uselesssum, double s_deviation) {
+    disp();
+    if(sela < 4)
+        disp_lift_info();
+    else
+        disp_lift_info_adv();
+
+    printf("\n > ido:                        00:%02d:%02d ", (curtime/60),(curtime%60));
+    printf("\n\n > kerelmek:                   %d felveve,  %d teljesitve\n   ",last_req_processed,last_req_served);
+    for (int i = 0; i < input_size; ++i) {
+
+        if(last_req_served >= i+1) printf("%c",178);
+        else if(last_req_processed >= i+1) printf("%c",177);
+        else printf("%c",176);
+    }
+    printf(" %d\n\n", input_size);
+    if(last_req_served > 0) printf(" > atlagos kiszolgalasi ido:   %d mp\n",(s_waitingsum/last_req_served+1));
+    if(s_uselesssum > 0)      printf(" > hatasfok:                   %d / %d (%.3f) \n",s_usefullsum,s_uselesssum,((float)s_usefullsum/(float)s_uselesssum));
+    if(last_req_served > 0) printf(" > szoras:                     %.2lf \n",s_deviation);
+}
+
+
 void disp(){
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     for (int i = maxlvl; i >= minlvl; --i) {
@@ -40,7 +64,7 @@ void disp_lift_info(){
     for (int i = 0; i < liftdb; ++i) {
         printf("%c %c (%.2d) [%d] >> ",i+65,heading_symbols[lifts[i].heading+1],lifts[i].state,lifts[i].capacity);
         for (int j = 0; j < lifts[i].capacity; ++j) {
-            printf("%d: #%.2d(%.2d>>%.2d),  ",reqs[lifts[i].reqs_serving[j]].shortlist,lifts[i].reqs_serving[j],reqs[lifts[i].reqs_serving[j]].from, reqs[lifts[i].reqs_serving[j]].to);
+            printf("%d: #%.2d(%.2d>>%.2d),  ",lifts[i].reqs_serving[j]->shortlist,lifts[i].reqs_serving[j]->id,lifts[i].reqs_serving[j]->from, lifts[i].reqs_serving[j]->to);
         }
         printf("\n");
     }

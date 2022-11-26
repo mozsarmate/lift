@@ -45,3 +45,28 @@ int *finishedindexes(int *t, int m, int k){
     ans[0] = j;
     return ans;
 }
+
+void clearlifts(int n){
+    for (int i = 0; i < n; ++i) {
+        lifts[i].state = 0;
+        lifts[i].lvl = 0.0;
+        lifts[i].capacity = 0;
+        lifts[i].shortlists = 0;
+        lifts[i].sl_serving->up = 0;
+        lifts[i].heading = 0;
+    }
+}
+
+
+int charstartoint(char *bem) {
+    int d;
+    int c = 0;
+    while(bem[c] != '\0'){
+        if(bem[c] < 48 || bem[c] > 57) return -1;
+        d *= 10;
+        d += bem[c]-48;
+        c++;
+    }
+    return d;
+}
+

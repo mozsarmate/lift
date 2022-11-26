@@ -6,7 +6,7 @@
 int move_lift(int cur, int curtime){
     if(lifts[cur].capacity == 0) return 0;
     if(lifts[cur].state == 0){
-        int heading = reqs[lifts[cur].reqs_serving[0]].from;
+        int heading = lifts[cur].reqs_serving[0]->from;
         if(heading == lifts[cur].lvl){
             lifts[cur].state = 1;
         }
@@ -18,7 +18,7 @@ int move_lift(int cur, int curtime){
     }
     else if(lifts[cur].state > 0 && 5 >lifts[cur].state){ lifts[cur].state++; lifts[cur].heading = 0;}
     else if(lifts[cur].state == 5){
-        int heading = reqs[lifts[cur].reqs_serving[0]].to;
+        int heading = lifts[cur].reqs_serving[0]->to;
         if(heading == lifts[cur].lvl){
             lifts[cur].state = 6;
         }
@@ -30,14 +30,13 @@ int move_lift(int cur, int curtime){
     }
     else if(lifts[cur].state > 5 && 10 >lifts[cur].state){ lifts[cur].state++; lifts[cur].heading = 0;}
     //move req blocks
-    //TODO do that with a queue
-    if(lifts[cur].state == 4) reqs[lifts[cur].reqs_serving[0]].getintime = curtime; //TODO make for adv
+    if(lifts[cur].state == 4) lifts[cur].reqs_serving[0]->getintime = curtime;
     if(lifts[cur].state == 10){ //TELJESÍTVE
-        int returned = lifts[cur].reqs_serving[0];
-        reqs[lifts[cur].reqs_serving[0]].getouttime = curtime;
-        for (int i = 0; i < lifts[cur].capacity-1; ++i) {
+        int returned = lifts[cur].reqs_serving[0]->id;
+        lifts[cur].reqs_serving[0]->getouttime = curtime;
+        for (int i = 0; i < lifts[cur].capacity-1; ++i) {                                   //TODO csunya
             lifts[cur].reqs_serving[i] = lifts[cur].reqs_serving[i+1];
-            reqs[lifts[cur].reqs_serving[i]].shortlist--;
+            lifts[cur].reqs_serving[i]->shortlist--;
         }
         lifts[cur].state = 0;
         lifts[cur].capacity--;

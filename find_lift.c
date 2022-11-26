@@ -16,9 +16,9 @@ int find_most_near(int lvl){
     for (int i = 0; i < liftdb; ++i) {
         if(lifts[i].capacity == 0) return i;
         if(lifts[i].capacity < 20) {
-            if (abs(reqs[lifts[i].reqs_serving[lifts[i].capacity - 1]].to - lvl) < mini) {
+            if (abs(lifts[i].reqs_serving[lifts[i].capacity - 1]->to - lvl) < mini) {
                 minindex = i;
-                mini = abs(reqs[lifts[i].reqs_serving[lifts[i].capacity - 1]].to - lvl);
+                mini = abs(lifts[i].reqs_serving[lifts[i].capacity - 1]->to - lvl);
             }
         }
     }
@@ -32,14 +32,14 @@ int find_fastest(int lvl){
         int curcount = 0;
         int j = 0;
         if(0 < lifts[i].state && lifts[i].state < 5) { curcount -= lifts[i].state; }
-        if(lifts[i].state == 5)                      { /*j=1;*/ curcount += 2*abs(reqs[lifts[i].reqs_serving[j]].from-reqs[lifts[i].reqs_serving[j]].to); }
+        if(lifts[i].state == 5)                      { /*j=1;*/ curcount += 2*abs(lifts[i].reqs_serving[j]->from-lifts[i].reqs_serving[j]->to); }
         if(5 < lifts[i].state)                       { /*j=1;*/ curcount += 9-lifts[i].state; }
         while (j < curcap) {
             if(j > 0) {
-                curcount += 2*abs(reqs[lifts[i].reqs_serving[j-1]].to-reqs[lifts[i].reqs_serving[j]].from);  //adding travel to from
+                curcount += 2*abs(lifts[i].reqs_serving[j-1]->to-lifts[i].reqs_serving[j]->from);  //adding travel to from
             }
             curcount += 4;                                                                                      //adding waiting
-            curcount += 2*abs(reqs[lifts[i].reqs_serving[j]].from-reqs[lifts[i].reqs_serving[j]].to);        //adding transporting travel time
+            curcount += 2*abs(lifts[i].reqs_serving[j]->from-lifts[i].reqs_serving[j]->to);        //adding transporting travel time
             curcount += 4;                                                                                      //adding waiting
             j++;
         }
@@ -52,10 +52,10 @@ int find_fastest(int lvl){
 }
 void find_complex(int flvl,int tlvl, int *ans){           //
     int minindex = 0;
-    int minshortlist = lifts[flvl%liftdb].shortlists;         //worst case scenario: return a new, (random?) created shortlist for a
+    int minshortlist = lifts[flvl%liftdb].shortlists;         // worst case scenario: return a new, (random?) created shortlist for a
     int mini = INT_MAX;
     int up = flvl < tlvl ? 1 : 0;
-    for (int i = 0; i < liftdb; i++) {                // check each lift
+    for (int i = 0; i < liftdb; i++) {                        // check each lift
         if(lifts[i].shortlists == 0){
             ans[0] = i; ans[1] = 0;
             return;
