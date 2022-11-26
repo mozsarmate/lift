@@ -32,8 +32,8 @@ int find_fastest(int lvl){
         int curcount = 0;
         int j = 0;
         if(0 < lifts[i].state && lifts[i].state < 5) { curcount -= lifts[i].state; }
-        if(lifts[i].state == 5)                      { j=1; curcount += 2*abs(reqs[lifts[i].reqs_serving[j]].from-reqs[lifts[i].reqs_serving[j]].to); }
-        if(5 < lifts[i].state)                       { j=1; curcount += 9-lifts[i].state; }
+        if(lifts[i].state == 5)                      { /*j=1;*/ curcount += 2*abs(reqs[lifts[i].reqs_serving[j]].from-reqs[lifts[i].reqs_serving[j]].to); }
+        if(5 < lifts[i].state)                       { /*j=1;*/ curcount += 9-lifts[i].state; }
         while (j < curcap) {
             if(j > 0) {
                 curcount += 2*abs(reqs[lifts[i].reqs_serving[j-1]].to-reqs[lifts[i].reqs_serving[j]].from);  //adding travel to from

@@ -9,7 +9,7 @@ int mainmenu(int sela, int disable){
         system("cls");
         HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
         SetConsoleTextAttribute(hConsole, 15);
-        printf("   __ _  __ _                    _          \n  / /(_)/ _| |_    ___  ___  ___| |__       \n / / | | |_| __|  / _ \\/ __|/ __| '_ \\    \n/ /__| |  _| |_  |  __/\\__ \\ (__| | | |   \n\\____/_|_|  \\__|  \\___||___/\\___|_| |_| \n\n");
+    disp_logo();
 
         SetConsoleTextAttribute(hConsole, 9);
         printf("  Fomenu\n");
@@ -33,7 +33,7 @@ int mainmenu(int sela, int disable){
     system("cls");
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleTextAttribute(hConsole, 15);
-    printf("   __ _  __ _                    _          \n  / /(_)/ _| |_    ___  ___  ___| |__       \n / / | | |_| __|  / _ \\/ __|/ __| '_ \\    \n/ /__| |  _| |_  |  __/\\__ \\ (__| | | |   \n\\____/_|_|  \\__|  \\___||___/\\___|_| |_| \n\n");
+disp_logo();
 
     SetConsoleTextAttribute(hConsole, 9);
     printf("  Fomenu\n");
@@ -57,7 +57,7 @@ int menu(int sela, int disable){
     do{
         system("cls");
         SetConsoleTextAttribute(hConsole, 15);
-        printf("   __ _  __ _                    _          \n  / /(_)/ _| |_    ___  ___  ___| |__       \n / / | | |_| __|  / _ \\/ __|/ __| '_ \\    \n/ /__| |  _| |_  |  __/\\__ \\ (__| | | |   \n\\____/_|_|  \\__|  \\___||___/\\___|_| |_| \n\n");
+    disp_logo();
         SetConsoleTextAttribute(hConsole,9);
         printf("<<szimulaciok\n");
         SetConsoleTextAttribute(hConsole,8);
@@ -81,7 +81,7 @@ int menu(int sela, int disable){
     sela = inp-1;
     system("cls");
     SetConsoleTextAttribute(hConsole, 15);
-    printf("   __ _  __ _                    _          \n  / /(_)/ _| |_    ___  ___  ___| |__       \n / / | | |_| __|  / _ \\/ __|/ __| '_ \\    \n/ /__| |  _| |_  |  __/\\__ \\ (__| | | |   \n\\____/_|_|  \\__|  \\___||___/\\___|_| |_| \n\n");
+disp_logo();
     SetConsoleTextAttribute(hConsole,9);
     printf("<<szimulaciok\n");
     SetConsoleTextAttribute(hConsole,8);
@@ -114,7 +114,7 @@ void editmenu(int *cel,int mode){
     do{
         system("cls");
         SetConsoleTextAttribute(hConsole, 15);
-        printf("   __ _  __ _                    _          \n  / /(_)/ _| |_    ___  ___  ___| |__       \n / / | | |_| __|  / _ \\/ __|/ __| '_ \\    \n/ /__| |  _| |_  |  __/\\__ \\ (__| | | |   \n\\____/_|_|  \\__|  \\___||___/\\___|_| |_| \n\n");
+    disp_logo();
         SetConsoleTextAttribute(hConsole,9);
         printf("<<tulajdonsagok\n");
         SetConsoleTextAttribute(hConsole,15);
@@ -160,7 +160,7 @@ int menuend(){
         printf("        %s \n",errMess[errCode]);
         SetConsoleTextAttribute(hConsole, 15);
 
-        scanf("%d",inp);
+        scanf("%d",&inp);
         errCode = 1;
     }while(!(inp > 0 && inp < 3));
     return inp;

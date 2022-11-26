@@ -35,7 +35,7 @@ int move_lift(int cur, int curtime){
     if(lifts[cur].state == 10){ //TELJESÍTVE
         int returned = lifts[cur].reqs_serving[0];
         reqs[lifts[cur].reqs_serving[0]].getouttime = curtime;
-        for (int i = 0; i < 20; ++i) {
+        for (int i = 0; i < lifts[cur].capacity-1; ++i) {
             lifts[cur].reqs_serving[i] = lifts[cur].reqs_serving[i+1];
             reqs[lifts[cur].reqs_serving[i]].shortlist--;
         }

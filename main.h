@@ -4,6 +4,7 @@
 #include <conio.h>
 #include <math.h>
 #include <string.h>
+#include "debugmalloc.h"
 
 #ifndef LIFT_MAIN_H
 #define LIFT_MAIN_H
@@ -17,7 +18,7 @@ typedef struct req{
 } req;
 typedef struct sl{
     int meret;
-    int t[20];                 //showing req id
+    int t[20];              //showing req id
     int shortlist;          //TODO maybe add serving time as a detail
     int up;
 } sl;
@@ -43,6 +44,7 @@ void disp_req_data(req bem);
 void disp_new_req(req bem, int _lift_ordered);
 void disp_lift_info();
 void disp_lift_info_adv();
+void disp_logo();
 int menu(int sela, int disable);
 int mainmenu(int sela, int disable);
 void editmenu(int *cel, int mode);
@@ -54,5 +56,11 @@ void find_complex(int flvl,int tlvl, int *ans);
 int move_lift(int cur, int curtime);
 int *move_lift_adv(int cur, int curtime);
 int charstartoint(char *bem);
+int getmin(int *t, int m);
+int getmax(int *t, int m);
+int *startedindexes(int *t, int m, int k);
+int *finishedindexes(int *t, int m, int k);
+int shouldstop(int *t, int m, int k);
+
 
 #endif //LIFT_MAIN_H
