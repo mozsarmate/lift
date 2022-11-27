@@ -48,8 +48,8 @@ void disp_lift_info();
 void disp_lift_info_adv();
 void disp_logo();
 
-int menu(int sela, int disable);
-int mainmenu(int sela, int disable);
+int menu(int disable);
+int mainmenu(int disable);
 void editmenu(int *cel, int mode);
 int menuend();
 
@@ -69,7 +69,7 @@ int *finishedindexes(int *t, int m, int k);
 int shouldstop(int *t, int m, int k);
 void clearlifts(int n);
 
-int * beolvasas(int *curid, int *input_size, FILE **fp);
+void beolvasas(int *curid, int *input_size, FILE *fp);
 void editFile(FILE *fp, int curid);
 void kiiras(int curid, int sela, int last_req_served, int curtime, int s_waitingsum, int s_usefullsum, int s_uselesssum, int s_deviation);
 

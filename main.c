@@ -43,7 +43,7 @@ int main() {
     double s_deviation = 0;               
     float s_avg = 0;                      
     FILE *fp;
-    int *s_times_eplapsed = beolvasas(&curid, &input_size, &fp);
+    beolvasas(&curid, &input_size, fp);
 
     /*
     for (int i = 0; i < curid; ++i) {
@@ -51,13 +51,13 @@ int main() {
     }*/
 
 
-    int selb = mainmenu(-1,300);
+    int selb = mainmenu(300);
     system("cls");
     if(selb == 1){
         editFile(fp, curid);
         return 0;
     }
-    int sela =     menu(-1,300);
+    int sela =     menu(300);
     //suggestions
     lvldb = 18;
     liftdb = 4;
@@ -67,6 +67,7 @@ int main() {
     maxlvl = lvldb;
     lifts = (lift*) malloc(sizeof(lift)*liftdb);
     clearlifts(liftdb);
+    int *s_times_eplapsed = (int *) malloc(sizeof(int)*((input_size) + 1));
 
 
 

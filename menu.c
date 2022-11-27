@@ -1,7 +1,7 @@
 //this script extends main.c
 #include "main.h"
 
-int mainmenu(int sela, int disable){
+int mainmenu( int disable){
     int inp = 0;
     int errCode = 0;
     char * errMess[] = {"","nem megfelelo bemenet","ez a funkcio sajnos meg nem implementalt, valassz masikat!"};
@@ -29,7 +29,7 @@ int mainmenu(int sela, int disable){
 
     }while(inp != 1 && inp != 2 );
 
-    sela = inp-1;
+    int sela = inp-1;
     system("cls");
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleTextAttribute(hConsole, 15);
@@ -49,7 +49,7 @@ disp_logo();
     return inp;
 }
 
-int menu(int sela, int disable){
+int menu(int disable){
     int inp = 0;
     int errCode = 0;
     char * errMess[] = {"","nem megfelelo bemenet"};
@@ -78,7 +78,7 @@ int menu(int sela, int disable){
         errCode = 1;
     }while(!(inp > 0 && inp < 5));
 
-    sela = inp-1;
+    int sela = inp-1;
     system("cls");
     SetConsoleTextAttribute(hConsole, 15);
 disp_logo();

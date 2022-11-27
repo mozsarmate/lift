@@ -3,29 +3,28 @@
 //
 #include "main.h"
 
-int * beolvasas(int *curid, int *input_size, FILE **fp) {
-    (*fp) = fopen("input.txt", "r");
+void beolvasas(int *curid, int *input_size, FILE *fp) {
+    (fp) = fopen("input.txt", "r");
 
-    if (NULL == (*fp)) {
+    if (NULL == (fp)) {
         printf("Nem lehetett megnyitni a fajlt :( \n");
         //return 0;
     }
     int ervenytelen = 0;
-    fscanf((*fp), "%d", input_size);
+    fscanf((fp), "%d", input_size);
     reqs = (req *) malloc(sizeof(req)*((*input_size) + 1));
-    int *s_times_eplapsed = (int *) malloc(sizeof(int)*((*input_size) + 1));
-    while(!feof((*fp)) && (*curid) < (*input_size)){
-        fscanf((*fp), "%d", curid);
+
+    while(!feof((fp)) && (*curid) < (*input_size)){
+        fscanf((fp), "%d", curid);
         if((*curid) < 0) ervenytelen++;
         else {
-            fscanf((*fp), "%d %d %d", &reqs[(*curid)].time, &reqs[(*curid)].from, &reqs[(*curid)].to);
+            fscanf((fp), "%d %d %d", &reqs[(*curid)].time, &reqs[(*curid)].from, &reqs[(*curid)].to);
             reqs[(*curid)].id = (*curid);
             reqs[(*curid)].getintime = -1;
             reqs[(*curid)].getouttime = -1;
         }
     }
-    fclose((*fp));
-    return s_times_eplapsed;
+    fclose((fp));
 }
 
 
@@ -80,8 +79,7 @@ void editFile(FILE *fp, int curid) {
         int tmp3 = 0, tmp2 = 0;
         while (bemint < curid && bemint > 0) {
             SetConsoleTextAttribute(hConsole, 8);
-            printf("     >>>Add meg a %d. sor maradek 2 adatjat (szokozzel elvalasztva)!\n         %d %d ", bemint,
-                   bemint, reqs[bemint].time);
+            printf("     >>>Add meg a %d. sor maradek 2 adatjat (szokozzel elvalasztva)!\n         %d %d ", bemint, bemint, reqs[bemint].time);
             SetConsoleTextAttribute(hConsole, 15);
 
             scanf("%d %d", &tmp2, &tmp3);
@@ -104,7 +102,7 @@ void editFile(FILE *fp, int curid) {
         }
         fp = fopen("input.txt","w");
         fprintf(fp,"%d\n",curid);
-        for (int i = 1; i < curid; ++i) {
+        for (int i = 1; i < curid+1; ++i) {
             fprintf(fp, "%d %d %d %d\n",reqs[i].id,reqs[i].time,reqs[i].from,reqs[i].to);
         }
     }
